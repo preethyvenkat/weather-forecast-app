@@ -1,0 +1,46 @@
+name: Install and Deploy Argo CD
+
+on:
+  workflow_dispatch:
+
+env:
+  CLUSTER_NAME: weather-app
+  ARGOCD_NAMESPACE: argocd
+
+jobs:
+  install-deploy-argo-cd:
+    name: Install & Deploy Argo CD
+    runs-on: [self-hosted, linux]  # use your runner labels here
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up kubectl with EKS context
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $CLUSTER_NAME
+
+      - name: Install Argo CD
+        run: |
+          kubectl create namespace $ARGOCD_NAMESPACE || true
+          kubectl apply -n $ARGOCD_NAMESPACE \
+            -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+      - name: Wait for Argo CD to be ready
+        run: |
+          sleep 60
+          kubectl rollout status deployment/argocd-server \
+            -n $ARGOCD_NAMESPACE --timeout=180s
+
+      - name: Deploy Argo CD Application
+        run: |
+          kubectl apply -f manifests/weather-app.yaml -n $ARGOCD_NAMESPACE

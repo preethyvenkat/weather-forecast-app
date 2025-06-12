@@ -1,0 +1,12 @@
+replicaCount: 2
+
+image:
+  repository: your-dockerhub-username/weather-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
