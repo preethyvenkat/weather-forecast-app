@@ -12,17 +12,15 @@ provider "aws" {
   region = var.region
 }
 
-# Remote state to fetch VPC outputs
 data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {
-    bucket         = "weather-forecast-tf-state"
-    key            = "statefiles/vpc/terraform.tfstate"
-    region         = "us-east-1"
+    bucket = "weather-forecast-tf-state"
+    key    = "statefiles/vpc/terraform.tfstate"
+    region = "us-east-1"
   }
 }
 
-# ECR repository (optional, used by CI/CD to push images)
 resource "aws_ecr_repository" "weather_app" {
   name                 = var.cluster_name
   image_tag_mutability = "MUTABLE"
@@ -32,7 +30,6 @@ resource "aws_ecr_repository" "weather_app" {
   }
 }
 
-# EKS Module
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.17.0"
@@ -43,7 +40,7 @@ module "eks" {
   vpc_id     = data.terraform_remote_state.vpc.outputs.vpc_id
   subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets
 
-  enable_irsa     = true
+  enable_irsa = true
 
   eks_managed_node_groups = {
     weather_nodes = {
@@ -54,25 +51,4 @@ module "eks" {
       capacity_type  = "ON_DEMAND"
     }
   }
-
-  # Grant EC2 GitHub runner access to cluster
-#  module "eks_blueprints_kubernetes_addons" {
- # source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
- # version = "19.17.0"
-
-  #depends_on = [module.eks]
-
-  #manage_aws_auth_configmap = true
-
-  #aws_auth_roles = [
-   # {
-   #   rolearn  = "arn:aws:iam::141409473062:role/GitHubActionsRunnerRole"
-    #  username = "github-runner"
-    #  groups   = ["system:masters"]
-   # }
- # ]
-
- # eks_cluster_name = module.eks.cluster_name
-#}
-
 }
