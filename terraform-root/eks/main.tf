@@ -56,23 +56,23 @@ module "eks" {
   }
 
   # Grant EC2 GitHub runner access to cluster
-  module "eks_blueprints_kubernetes_addons" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "19.17.0"
+#  module "eks_blueprints_kubernetes_addons" {
+ # source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+ # version = "19.17.0"
 
-  depends_on = [module.eks]
+  #depends_on = [module.eks]
 
-  manage_aws_auth_configmap = true
+  #manage_aws_auth_configmap = true
 
-  aws_auth_roles = [
-    {
-      rolearn  = "arn:aws:iam::141409473062:role/GitHubActionsRunnerRole"
-      username = "github-runner"
-      groups   = ["system:masters"]
-    }
-  ]
+  #aws_auth_roles = [
+   # {
+   #   rolearn  = "arn:aws:iam::141409473062:role/GitHubActionsRunnerRole"
+    #  username = "github-runner"
+    #  groups   = ["system:masters"]
+   # }
+ # ]
 
-  eks_cluster_name = module.eks.cluster_name
-}
+ # eks_cluster_name = module.eks.cluster_name
+#}
 
 }
